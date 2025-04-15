@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.campus.mapper.ActivityMapper">
+    <!--
+
+ * * @author woshizhuyijie
+ * @date 2024-12-22
+ *
+
+    -->
+    <!-- 定义 resultMap -->
+    <resultMap id="ActivityResultMap" type="com.example.campus.pojo.Activity">
+        <id column="activity_id" property="id" />
+        <result column="activity_name" property="name" />
+        <result column="created_time" property="createdTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="activity_category" property="category" />
+        <result column="activity_title" property="title" />
+        <result column="activity_abstract" property="abstractContent" />
+        <result column="detailed_desc" property="detailedDescription" />
+        <result column="activity_status" property="status" />
+        <result column="activity_pic_urls" property="pictureUrl" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="archived_time" property="archivedTime" />
+        <result column="activity_creator" property="creator"/>
+    </resultMap>
+    <insert id="create">
+     insert into t_manager_activity
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">activity_name,</if>
+            <if test="title != null">activity_title,</if>
+            <if test="category != null">activity_category,</if>
+            <if test="creator != null">activity_creator,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="pictureUrl != null">activity_pic_urls</if>
+        </trim>
+        <trim prefix=" values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="title != null">#{title},</if>
+            <if test="category != null">#{category},</if>
+            <if test="creator != null">#{creator},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="pictureUrl != null">#{pictureUrl}</if>
+        </trim>;
+    </insert>
+
+        <update id="update" parameterType="com.example.campus.pojo.Activity">
+            UPDATE t_manager_activity
+            <set>
+                <if test="name != null">activity_name = #{name},</if>
+                <if test="title != null">activity_title = #{title},</if>
+                <if test="status != null">activity_status = #{status},</if>
+                <if test="startTime != null">start_time = #{startTime},</if>
+                <if test="endTime != null">end_time = #{endTime},</if>
+                <if test="pictureUrl != null">activity_pic_urls = #{pictureUrl},</if>
+                <if test="abstractContent != null">activity_abstract = #{abstractContent},</if>
+                <if test="archivedTime != null">archived_time = #{archivedTime}</if>
+                <if test="category != null">activity_category=#{category},</if>
+                <if test="creator != null">activity_creator=#{creator},</if>
+                <if test="detailedDescription != null">detailed_desc=#{detailedDescription},</if>
+                <if test="updateTime != null">update_time=#{updateTime},</if>
+            </set>
+            WHERE activity_id = #{id}
+        </update>
+
+    <select id="query" parameterType="com.example.campus.pojo.Activity" resultType="com.example.campus.pojo.Activity" resultMap="ActivityResultMap">
+        SELECT
+         *
+        FROM t_manager_activity
+        <where>
+            <if test="id != null">AND activity_id = #{id}</if>
+            <if test="name != null and name != ''">AND activity_name like CONCAT('%', #{name}, '%') </if>
+            <if test="title != null and title != ''">AND activity_title = #{title}</if>
+            <if test="status != null">AND activity_status = #{status}</if>
+            <if test="startTime != null">AND start_time &gt;= #{startTime}</if>
+            <if test="endTime != null">AND end_time &lt;= #{endTime}</if>
+        </where>
+        ORDER BY created_time DESC
+    </select>
+
+    <select id="selectById" resultType="com.example.campus.pojo.Activity" resultMap="ActivityResultMap">
+     select * from t_manager_activity
+     where activity_id=#{activityId};
+    </select>
+</mapper>

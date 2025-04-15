@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.campus.mapper.TeacherMapper">
+    <resultMap id="TeacherResultMap" type="com.example.campus.pojo.Teacher">
+        <id column="teacher_id" property="id"></id>
+        <result column="teacher_name" property="teacherName"></result>
+        <result column="subject" property="subject"></result>
+        <result column="profession" property="profession"></result>
+        <result column="school" property="schoolName"></result>
+        <result column="login_id" property="loginId"></result>
+        <result column="teacher_status" property="status"></result>
+        <result column="introduce" property="introduce"></result>
+        <association property="user" javaType="com.example.campus.pojo.User" resultMap="com.example.campus.mapper.UserMapper.UseResultMap">
+            <!--配置teacher对应的User用户-->
+
+        </association>
+        <collection property="courseList" ofType="com.example.campus.pojo.Course" resultMap="com.example.campus.mapper.CourseMapper.CourseResultMap"></collection>
+    </resultMap>
+    <select id="queryTeachers" resultType="com.example.campus.pojo.Teacher" resultMap="TeacherResultMap">
+        <!--SELECT
+        *
+        FROM
+        t_manager_teacher t-->
+        SELECT
+        t.teacher_id,
+        t.teacher_name,
+        t.subject,
+        t.profession,
+        t.school,
+        t.login_id,
+        t.teacher_status,
+        t.introduce,
+        u.user_id,
+        u.login_name,
+        u.email,
+        u.phone,
+        u.gender,
+        u.birthday,
+        u.isBind,
+        u.user_status,
+        r.role_id,
+        r.role_name,
+        r.role_description,
+        p.permission_id,
+        p.permission_name,
+        p.permission_code,
+        p.permission_url,
+        p.permission_order,
+        course.course_id,
+        course.course_name,
+        course.course_status,
+        course.created_time
+        FROM t_manager_teacher t
+        LEFT JOIN t_sys_user u ON t.login_id = u.user_id
+        LEFT JOIN t_sys_user_role ur ON ur.user_id = u.user_id
+        LEFT JOIN t_sys_role r ON ur.role_id = r.role_id
+        LEFT JOIN t_sys_role_permission rp ON r.role_id = rp.role_id
+        LEFT JOIN t_sys_permission p ON rp.perm_id = p.permission_id
+        left join t_course_teacher ct on ct.teacher_id=t.teacher_id
+        left join t_course course on course.course_id=ct.course_id
+        <where>
+            <if test="id != null">
+                AND t.teacher_id = #{id}
+            </if>
+            <if test="teacherName != null">
+                AND t.teacher_name LIKE CONCAT('%', #{teacherName}, '%')
+            </if>
+            <if test="subject != null">
+                AND t.subject = #{subject}
+            </if>
+            <if test="profession != null">
+                AND t.profession LIKE CONCAT('%', #{profession}, '%')
+            </if>
+            <if test="schoolName != null">
+                AND t.school LIKE CONCAT('%', #{schoolName}, '%')
+            </if>
+            <if test="loginId != null">
+                AND t.login_id = #{loginId}
+            </if>
+        </where>
+    </select>
+    <select id="selectByIdTeacher" resultType="com.example.campus.pojo.Teacher" resultMap="TeacherResultMap">
+        select * from t_manager_teacher where teacher_id=#{id};
+    </select>
+    <select id="countTeacher" resultType="java.lang.Integer">
+        select count(*) from t_manager_teacher;
+    </select>
+    <update id="updateTeacher">
+        UPDATE t_manager_teacher
+        <set>
+            <if test="teacherName != null">
+                teacher_name = #{teacherName},
+            </if>
+            <if test="subject != null">
+                subject = #{subject},
+            </if>
+            <if test="profession != null">
+                profession = #{profession},
+            </if>
+            <if test="schoolName != null">
+                school = #{schoolName},
+            </if>
+            <if test="introduce != null">
+                introduce = #{introduce},
+            </if>
+            <if test="loginId != null">
+                login_id = #{loginId},
+            </if>
+            <if test="status != null">
+                teacher_status = #{status},
+            </if>
+        </set>
+        WHERE teacher_id= #{id}
+    </update>
+    <delete id="deleteTeacherById">
+        DELETE FROM t_manager_teacher
+        WHERE teacher_id = #{id}
+    </delete>
+    <insert id="insertTeacher" parameterType="com.example.campus.pojo.Teacher">
+        INSERT INTO t_manager_teacher
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="teacherName != null">teacher_name,</if>
+            <if test="subject != null">subject,</if>
+            <if test="profession != null">profession,</if>
+            <if test="schoolName != null">school,</if>
+            <if test="loginId != null">login_id,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="teacherName != null">#{teacherName},</if>
+            <if test="subject != null">#{subject},</if>
+            <if test="profession != null">#{profession},</if>
+            <if test="schoolName != null">#{schoolName},</if>
+            <if test="loginId != null">#{loginId},</if>
+        </trim>
+    </insert>
+
+</mapper>

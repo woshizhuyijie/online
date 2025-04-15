@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.campus.mapper.UserMapper">
+    <!--
+        * * @author woshizhuyijie
+        * @date 2024-12-22
+        *
+   -->
+    <resultMap id="UseResultMap" type="com.example.campus.pojo.User">
+        <id column="user_id" property="id"></id>
+        <result column="login_name" property="loginName"></result>
+        <result column="password" property="password"></result>
+        <result column="gender" property="gender"></result>
+        <result column="birthday" property="birthday"></result>
+        <result column="email" property="email"></result>
+        <result column="user_status" property="status"></result>
+        <result column="isBind" property="isBind"></result>
+        <result column="phone" property="phone"></result>
+        <!-- 使用 collection 映射 roleList -->
+        <collection property="roleList" ofType="com.example.campus.pojo.Role" resultMap="com.example.campus.mapper.RoleMapper.RoleResultMap"/>
+    </resultMap>
+    <insert id="registerUser">
+        insert into t_sys_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="loginName != null">login_name,</if>
+            <if test="password != null">password,</if>
+            <if test="gender != null">gender,</if>
+            <if test="birthday != null">birthday,</if>
+            <if test="phone != null">phone,</if>
+            <if test="email != null">email,</if>
+            <if test="status != null">user_status,</if>
+            <if test="isBind != null">isBind,</if>
+        </trim>
+        <trim prefix=" values (" suffix=")" suffixOverrides=",">
+            <if test="loginName != null">#{loginName},</if>
+            <if test="password != null">#{password},</if>
+            <if test="gender != null">#{gender},</if>
+            <if test="birthday != null">#{birthday},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="email != null">#{email},</if>
+            <if test="status != null">#{status},</if>
+            <if test="isBind != null">#{isBind},</if>
+        </trim>
+    </insert>
+    <update id="update">
+        UPDATE t_sys_user
+        <set>
+            <if test="password != null">password = #{password},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="status != null">user_status = #{status},</if>
+            <if test="isBind != null">isBind = #{isBind},</if>
+        </set>
+        WHERE login_name = #{loginName}
+    </update>
+    <select id="login" resultType="com.example.campus.pojo.User" resultMap="UseResultMap">
+        SELECT * FROM t_sys_user
+        WHERE login_name = #{loginName} AND password = #{password}
+    </select>
+
+    <select id="query" resultMap="UseResultMap">
+        <!--SELECT * FROM t_sys_user
+        <where>
+            <if test="loginName != null">AND login_name = #{loginName}</if>
+            <if test="gender != null">AND gender = #{gender}</if>
+            <if test="birthday != null">AND birthday = #{birthday}</if>
+            <if test="phone != null">AND phone = #{phone}</if>
+            <if test="email != null">AND email = #{email}</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="id != null">AND id = #{id}</if>
+            <if test="isBind != null">AND isBind = #{isBind}</if>
+        </where>-->
+        SELECT
+        u.user_id , u.login_name, u.password, u.gender, u.birthday, u.email, u.user_status, u.isBind,u.phone,
+        r.role_id, r.role_name,  r.role_description,
+        p.permission_id, p.permission_name, p.permission_code,
+        p.permission_url, p.permission_order
+        FROM t_sys_user u
+        LEFT JOIN t_sys_user_role ur ON u.user_id = ur.user_id
+        LEFT JOIN t_sys_role r ON ur.role_id = r.role_id
+        LEFT JOIN t_sys_role_permission rp ON r.role_id = rp.role_id
+        LEFT JOIN t_sys_permission p ON rp.perm_id = p.permission_id
+        <where>
+            <if test="loginName != null">AND u.login_name = #{loginName}</if>
+            <if test="gender != null">AND u.gender = #{gender}</if>
+            <if test="birthday != null">AND u.birthday = #{birthday}</if>
+            <if test="phone != null">AND u.phone = #{phone}</if>
+            <if test="email != null">AND u.email = #{email}</if>
+            <if test="status != null">AND u.user_status = #{status}</if>
+            <if test="id != null">AND u.user_id = #{id}</if>
+            <if test="isBind != null">AND u.isBind = #{isBind}</if>
+        </where>
+    </select>
+    <select id="findPermissionsByUserId" resultType="com.example.campus.pojo.Permission" resultMap="com.example.campus.mapper.PermissionMapper.PermissionResultMap">
+        SELECT p.*
+        FROM t_sys_permission p
+                 JOIN t_sys_role_permission rp ON rp.perm_id = p.permission_id
+                 JOIN t_sys_user_role ur ON ur.role_id = rp.role_id
+        WHERE ur.user_id = #{userId};
+
+    </select>
+    <select id="getLoginNameString" resultType="java.lang.String">
+        select login_name from t_sys_user where user_id=#{userId};
+    </select>
+    <select id="selectByUseID" resultType="com.example.campus.pojo.User" resultMap="UseResultMap">
+        select * from t_sys_user where user_id=#{userId};
+    </select>
+    <select id="getPasswordString" resultType="java.lang.String">
+        select password from t_sys_user where login_name=#{loginName};
+    </select>
+    <select id="getByUserName" resultType="com.example.campus.pojo.User" resultMap="UseResultMap">
+        select * from t_sys_user where  login_name=#{loginName};
+    </select>
+    <select id="getUserIdByUserName" resultType="java.lang.Integer">
+        select user_id from t_sys_user where login_name=#{loginName}
+    </select>
+    <select id="getRoleListByUserId" resultType="com.example.campus.pojo.Role" resultMap="com.example.campus.mapper.RoleMapper.RoleResultMap">
+        select tsr.role_id,tsr.role_name,tsr.role_description
+        from t_sys_user_role tsur left join t_sys_role tsr on tsr.role_id=tsur.role_id
+        where tsur.user_id=#{userId}
+    </select>
+
+</mapper>

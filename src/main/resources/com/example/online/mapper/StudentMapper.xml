@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.campus.mapper.StudentMapper">
+  <!--
+        * * @author woshizhuyijie
+        * @date 2024-12-22
+        *
+   -->
+    <resultMap id="StudentResultMap" type="com.example.campus.pojo.Student">
+      <id column="stu_id" property="id"></id>
+        <result column="stu_name" property="studentName"></result>
+        <result column="from_place" property="fromPlace"></result>
+        <result column="parent_phone" property="parentPhone"></result>
+        <result column="current_grade" property="currentGrade"></result>
+        <result column="is_first" property="isFirst"></result>
+        <result column="login_id" property="loginId"></result>
+        <result column="comment" property="comment"></result>
+        <result column="stu_status" property="status"></result>
+     <!-- <result column="class_id" property="classId"></result>-->
+      <!-- 使用 association 来映射 User -->
+      <association property="user" javaType="com.example.campus.pojo.User" resultMap="com.example.campus.mapper.UserMapper.UseResultMap">
+        <!--<id property="id" column="user_id"/>
+        <result property="loginName" column="login_name"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="gender" column="gender"/>
+        <result property="birthday" column="birthday"/>
+        <result property="isBind" column="isBind"/>
+        <result property="status" column="user_status"/>-->
+        <!-- 其他 user 属性 -->
+      </association>
+    </resultMap>
+  <!--插入之后会返回主键-->
+  <insert id="insertStudent" parameterType="com.example.campus.pojo.Student" useGeneratedKeys="true" keyProperty="id"  >
+    INSERT INTO t_manager_student
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="studentName != null">stu_name,</if>
+      <if test="fromPlace != null">from_place,</if>
+      <if test="parentPhone != null">parent_phone,</if>
+      <if test="currentGrade != null">current_grade,</if>
+      <if test="isFirst != null">is_first,</if>
+      <if test="loginId != null">login_id,</if>
+      <!--<if test="classId != null">class_id,</if>-->
+      <if test="comment != null">comment,</if>
+    </trim>
+    <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+      <if test="studentName != null">#{studentName},</if>
+      <if test="fromPlace != null">#{fromPlace},</if>
+      <if test="parentPhone != null">#{parentPhone},</if>
+      <if test="currentGrade != null">#{currentGrade},</if>
+      <if test="isFirst != null">#{isFirst},</if>
+      <if test="loginId != null">#{loginId}</if>
+     <!-- <if test="classId != null">#{classId},</if>-->
+      <if test="comment != null">#{comment},</if>
+    </trim>
+  </insert>
+  <delete id="deleteStudentById" parameterType="int">
+    DELETE FROM t_manager_student
+    WHERE stu_id = #{id}
+  </delete>
+  <select id="queryStudents" resultMap="StudentResultMap">
+   <!-- SELECT
+    *
+    FROM t_manager_student
+    <where>
+      <if test="id != null">AND id = #{id}</if>
+      <if test="studentName != null">AND stu_name LIKE CONCAT('%', #{studentName}, '%')</if>
+      <if test="fromPlace != null">AND from_place LIKE CONCAT('%', #{fromPlace}, '%')</if>
+      <if test="parentPhone != null">AND parent_phone = #{parentPhone}</if>
+      <if test="currentGrade != null">AND current_grade = #{currentGrade}</if>
+      <if test="isFirst != null">AND is_first = #{isFirst}</if>
+      <if test="loginId != null">AND login_id = #{loginId}</if>
+      <if test="classId != null">AND class_id = #{classId}</if>
+      <if test="comment != null">AND comment LIKE CONCAT('%', #{comment}, '%')</if>
+      <if test="status != null">AND status = #{status}</if>
+       SELECT
+    s.stu_id, s.stu_name, s.from_place, s.parent_phone, s.current_grade,
+    s.is_first, s.login_id, s.class_id, s.comment, s.stu_status,
+    u.user_id, u.login_name, u.email, u.phone, u.gender, u.birthday, u.isBind, u.user_status,
+    r.role_id,r.role_name,r.role_description
+    FROM t_manager_student s
+    INNER JOIN t_sys_user u ON s.login_id = u.user_id
+    left join t_sys_user_role ur on  ur.user_id=u.user_id
+    left join t_sys_role r on ur.role_id=r.role_id
+    </where>-->
+    SELECT
+    s.stu_id, s.stu_name, s.from_place, s.parent_phone, s.current_grade,
+    s.is_first, s.login_id, s.comment, s.stu_status,
+    u.user_id, u.login_name, u.email, u.phone, u.gender, u.birthday, u.isBind, u.user_status,
+    r.role_id,r.role_name,r.role_description,p.permission_id,p.permission_name,p.permission_code,p.permission_url,p.permission_order
+    FROM t_manager_student s
+    INNER JOIN t_sys_user u ON s.login_id = u.user_id
+    left join t_sys_user_role ur on  ur.user_id=u.user_id
+    left join t_sys_role r on ur.role_id=r.role_id
+    left join t_sys_role_permission rp on r.role_id = rp.role_id
+    left join  t_sys_permission p on rp.perm_id = p.permission_id
+    <where>
+      <if test="id != null">AND s.id = #{id}</if>
+      <if test="studentName != null">AND s.stu_name LIKE CONCAT('%', #{studentName}, '%')</if>
+      <if test="fromPlace != null">AND s.from_place LIKE CONCAT('%', #{fromPlace}, '%')</if>
+      <if test="parentPhone != null">AND s.parent_phone = #{parentPhone}</if>
+      <if test="currentGrade != null">AND s.current_grade = #{currentGrade}</if>
+      <if test="isFirst != null">AND s.is_first = #{isFirst}</if>
+      <if test="loginId != null">AND s.login_id = #{loginId}</if>
+      <!--<if test="classId != null">AND s.class_id = #{classId}</if>-->
+      <if test="comment != null">AND s.comment LIKE CONCAT('%', #{comment}, '%')</if>
+      <if test="status != null">AND s.stu_status = #{status}</if>
+    </where>
+  </select>
+    <select id="countNumber" resultType="java.lang.Integer">
+      SELECT COUNT(*)
+      FROM t_manager_student
+    </select>
+    <select id="selectByStudentNameStudent" resultType="com.example.campus.pojo.Student" resultMap="StudentResultMap">
+      select * from t_manager_student
+      where stu_name=#{studentName};
+    </select>
+  <select id="selectByStudentId" resultType="com.example.campus.pojo.Student" resultMap="StudentResultMap">
+    select * from t_manager_student
+    where stu_id=#{studentId};
+  </select>
+    <select id="selectByLoginId" resultType="com.example.campus.pojo.Student" resultMap="StudentResultMap">
+      select * from t_manager_student
+      where login_id=#{loginId};
+    </select>
+  <select id="getStuIdByLoginId" resultType="java.lang.Integer">
+    select stu_id from t_manager_student
+    where login_id=#{loginId};
+  </select>
+  <update id="updateStudent">
+    UPDATE t_manager_student
+    <set>
+      <if test="studentName != null">
+        stu_name = #{studentName},
+      </if>
+      <if test="fromPlace != null">
+        from_place = #{fromPlace},
+      </if>
+      <if test="parentPhone != null">
+        parent_phone = #{parentPhone},
+      </if>
+      <if test="currentGrade != null">
+        current_grade = #{currentGrade},
+      </if>
+      <if test="isFirst != null">
+        is_first = #{isFirst},
+      </if>
+      <if test="loginId != null">
+        login_id = #{loginId},
+      </if>
+      <!--<if test="classId != null">
+        class_id = #{classId},
+      </if>-->
+      <if test="comment != null">
+        comment = #{comment},
+      </if>
+      <if test="status != null">
+        stu_status = #{status},
+      </if>
+    </set>
+    WHERE stu_id = #{id}
+  </update>
+
+</mapper>

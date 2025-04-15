@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.campus.mapper.UnitMapper">
+    <!--
+        * * @author woshizhuyijie
+        * @date 2024-12-22
+        *
+   -->
+    <!-- 插入 unit_doc 表数据 -->
+    <insert id="insertUnitDoc" parameterType="map">
+        INSERT INTO unit_doc (unit_id, doc_url)
+        VALUES (#{unitId}, #{docUrl})
+    </insert>
+
+    <!-- 插入 unit_img 表数据 -->
+    <insert id="insertUnitImg" parameterType="map">
+        INSERT INTO unit_img (unit_id, img_url)
+        VALUES (#{unitId}, #{imgUrl})
+    </insert>
+
+    <!-- 插入 unit_video 表数据 -->
+    <insert id="insertUnitVideo" parameterType="map">
+        INSERT INTO unit_video (unit_id, video_url)
+        VALUES (#{unitId}, #{videoUrl})
+    </insert>
+
+    <!-- 查询 unit_doc 表的 doc_url -->
+    <select id="selectDocUrlsByUnitId" resultType="string">
+        SELECT doc_url FROM unit_doc WHERE unit_id = #{unitId}
+    </select>
+
+    <!-- 查询 unit_img 表的 img_url -->
+    <select id="selectImgUrlsByUnitId" resultType="string">
+        SELECT img_url FROM unit_img WHERE unit_id = #{unitId}
+    </select>
+
+    <!-- 查询 unit_video 表的 video_url -->
+    <select id="selectVideoUrlsByUnitId" resultType="string">
+        SELECT video_url FROM unit_video WHERE unit_id = #{unitId}
+    </select>
+</mapper>

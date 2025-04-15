@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.campus.mapper.ClassesMapper">
+    <!--
+        * * @author woshizhuyijie
+        * @date 2024-12-22
+        *
+   -->
+    <!-- 定义 resultMap -->
+    <resultMap id="classResultMap" type="com.example.campus.pojo.Classes">
+        <id column="class_id" property="classId" />
+        <result column="class_name" property="className" />
+        <result column="class_desc" property="classDescription" />
+        <association property="course" javaType="com.example.campus.pojo.Course"  resultMap="com.example.campus.mapper.CourseMapper.CourseResultMap">
+            <!--查询出教学班对应的课程-->
+        </association>
+        <collection property="activityList" ofType="com.example.campus.pojo.Activity" resultMap="com.example.campus.mapper.ActivityMapper.ActivityResultMap">
+            <!--班级一对多活动-->
+        </collection>
+        <collection property="teacherList" ofType="com.example.campus.pojo.Teacher" resultMap="com.example.campus.mapper.TeacherMapper.TeacherResultMap">
+            <!--班级一对多教师-->
+        </collection>
+    </resultMap>
+    <insert id="insertClass" parameterType="com.example.campus.pojo.Classes" useGeneratedKeys="true" keyProperty="classId">
+        INSERT INTO t_manager_class
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="className != null">class_name,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="classDescription != null">class_desc,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="className != null">#{className},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="classDescription != null">#{classDescription},</if>
+        </trim>
+    </insert>
+    <insert id="bindTeacher">
+        insert into t_class_teacher(class_id, teacher_id) VALUE (#{classId},#{teacherId})
+    </insert>
+    <insert id="bindActivity">
+        insert into t_class_activity(class_id, activity_id) VALUE (#{classId},#{activityId})
+    </insert>
+    <insert id="bindStudentForClass">
+        INSERT INTO t_class_student(class_id,student_id) value(#{classId},#{studentId});
+    </insert>
+    <delete id="removeStudentFromClass">
+        DELETE FROM t_class_student
+        WHERE class_id = #{classId} AND student_id = #{studentId};
+    </delete>
+    <delete id="removeTeacherFromClass">
+        DELETE FROM t_class_teacher
+        WHERE class_id = #{classId} AND teacher_id = #{teacherId};
+    </delete>
+    <delete id="removeActivityFromClass">
+        DELETE FROM t_class_activity
+        WHERE class_id = #{classId} AND activity_id = #{activityId};
+    </delete>
+    <select id="queryClasses" resultMap="classResultMap">
+        SELECT
+        c.class_id, c.class_name, c.created_time, c.class_desc,
+        tc.course_id,tc.course_name,tc.created_time,tc.course_status,a.activity_id,
+        a.activity_name,a.activity_title,a.activity_creator,a.activity_abstract,
+        a.detailed_desc,a.activity_status,a.created_time,a.archived_time,
+        a.activity_pic_urls,a.start_time,a.end_time,a.update_time,
+        t.teacher_id,t.teacher_name,t.subject,t.profession,t.school,t.introduce,t.login_id,t.teacher_status
+        FROM
+        t_manager_class c
+        left join  t_course_class tcc on tcc.class_id=c.class_id
+        left join t_course tc on tc.course_id=tcc.course_id
+        left join t_class_activity ca on c.class_id=ca.class_id
+        left join t_manager_activity a on a.activity_id=ca.activity_id
+        left join t_class_teacher ct on ct.class_id=c.class_id
+        left join t_manager_teacher t on t.teacher_id=ct.teacher_id
+        <where>
+            <if test="classId != null">AND class_id = #{classId}</if>
+            <if test="className != null">AND name LIKE CONCAT('%', #{className}, '%')</if>
+            <if test="createdTime != null">AND created_time = #{createdTime}</if>
+            <if test="classDescription != null">AND class_desc LIKE CONCAT('%', #{classDescription}, '%')</if>
+        </where>
+    </select>
+    <select id="queryActivityList" resultType="com.example.campus.pojo.Activity" resultMap="com.example.campus.mapper.ActivityMapper.ActivityResultMap">
+        SELECT
+            a.*
+        FROM
+            t_manager_activity a
+                INNER JOIN
+            t_class_activity ca
+            ON
+                a.activity_id = ca.activity_id
+        WHERE
+            ca.class_id = #{classId}
+    </select>
+    <select id="queryTeacherList" resultType="com.example.campus.pojo.Teacher" resultMap="com.example.campus.mapper.TeacherMapper.TeacherResultMap">
+        select t.*
+        from t_manager_teacher t inner join t_class_teacher ct
+        on t.teacher_id=ct.teacher_id
+       where ct.class_id=#{classId}
+    </select>
+    <select id="selectByClassName" resultType="com.example.campus.pojo.Classes" resultMap="classResultMap">
+        select * from t_manager_class where class_name=#{className};
+    </select>
+    <select id="selectByClassId" resultType="com.example.campus.pojo.Classes">
+        select * from t_manager_class where class_id=#{id};
+    </select>
+    <select id="selectStudentByClassId" resultType="com.example.campus.pojo.Student" resultMap="com.example.campus.mapper.StudentMapper.StudentResultMap">
+     select tms.stu_id,tms.stu_name,tms.from_place,tms.parent_phone,tms.current_grade,
+      tms.is_first,tms.login_id,tms.comment,tms.stu_status
+      from t_class_student tcs inner join t_manager_student tms on tcs.student_id=tms.stu_id
+      where tcs.class_id=#{classId}
+    </select>
+    <update id="updateClass" parameterType="com.example.campus.pojo.Classes">
+        UPDATE t_manager_class
+        <set>
+            <if test="className != null">class_name = #{className},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="classDescription != null">class_desc = #{classDescription},</if>
+        </set>
+        WHERE class_id = #{classId}
+    </update>
+
+</mapper>

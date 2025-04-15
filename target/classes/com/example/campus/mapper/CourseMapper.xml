@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.campus.mapper.CourseMapper">
+    <!--
+        * * @author woshizhuyijie
+        * @date 2024-12-22
+        *
+   -->
+    <resultMap id="CourseResultMap" type="com.example.campus.pojo.Course">
+        <id column="course_id" property="courseId"></id>
+        <result column="course_name" property="courseName"></result>
+        <result column="created_time" property="createdTime"></result>
+        <result column="course_status" property="status"></result>
+        <collection property="unitList" resultMap="UnitResultMap"></collection>
+       </resultMap>
+    <resultMap id="UnitResultMap" type="com.example.campus.pojo.TeachingUnit">
+        <id column="course_unit_id" property="id"></id>
+        <result column="unit_title" property="unitName"></result>
+        <result column="unit_introduce" property="unitDescription"></result>
+        <result column="father_id" property="fatherId"></result>
+        <result column="is_chapter" property="isChapter"></result>
+        <result column="course_id" property="courseId"></result>
+        <result column="learning_score" property="learningScore"></result>
+    </resultMap>
+    <insert id="createCourse" parameterType="com.example.campus.pojo.Course">
+        INSERT INTO t_course
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="status != null">course_status,</if>
+            <if test="courseName != null">course_name,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="courseName != null">#{courseName},</if>
+        </trim>
+    </insert>
+    <insert id="BindClassForCourse">
+        insert into t_course_class(course_id,class_id) value(#{courseId},#{classId});
+    </insert>
+    <!--插入学习单元-->
+    <insert id="insertTeachingUnit" parameterType="com.example.campus.pojo.TeachingUnit">
+        INSERT INTO t_course_learn_unit
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+
+            <if test="unitName != null">unit_title,</if>
+
+            <if test="unitDescription != null">unit_introduce,</if>
+            <if test="fatherId != null">father_id,</if>
+            <if test="isChapter != null">is_chapter,</if>
+            <if test="courseId != null">course_id,</if>
+            <if test="learningScore != null">learning_score,</if>
+
+        </trim>
+
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+
+            <if test="unitName != null">#{unitName},</if>
+
+            <if test="unitDescription != null">#{unitDescription},</if>
+            <if test="fatherId != null">#{fatherId},</if>
+            <if test="isChapter != null">#{isChapter},</if>
+            <if test="courseId != null">#{courseId},</if>
+            <if test="learningScore != null">#{learningScore},</if>
+
+        </trim>
+    </insert>
+    <update id="updateTeachingUnit" parameterType="com.example.campus.pojo.TeachingUnit">
+        UPDATE t_course_learn_unit
+        <set>
+            <if test="unitName != null">unit_title = #{unitName},</if>
+            <if test="unitDescription != null">unit_introduce = #{unitDescription},</if>
+            <if test="fatherId != null">father_id = #{fatherId},</if>
+            <if test="isChapter != null">is_chapter = #{isChapter},</if>
+            <if test="learningScore != null">learning_score = #{learningScore},</if>
+        </set>
+        WHERE course_unit_id = #{id};
+    </update>
+
+    <update id="updateCourse">
+        UPDATE t_course
+        <set>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="status != null">course_status = #{status},</if>
+            <if test="courseName != null">course_name = #{courseName},</if>
+        </set>
+        WHERE course_id = #{courseId}
+    </update>
+    <select id="queryCourses" resultType="com.example.campus.pojo.Course" resultMap="CourseResultMap">
+        SELECT
+        tc.course_id , tc.course_name,tc.created_time,tc.course_status,
+        tclu.course_unit_id ,tclu.unit_title,tclu.doc_path,tclu.video_path,tclu.unit_introduce,
+        tclu.father_id,tclu.is_chapter,tclu.course_id,tclu.learning_score
+        FROM t_course tc left join t_course_learn_unit tclu on tc.course_id=tclu.course_id
+        <where>
+            <if test="courseId != null">AND course_id = #{courseId}</if>
+            <if test="createdTime != null">AND created_time = #{createdTime}</if>
+            <if test="status != null">AND course_status = #{status}</if>
+            <if test="courseName != null">AND course_name LIKE CONCAT('%', #{courseName}, '%')</if>
+            <!-- 只加载有学习单元的课程 -->
+            <if test="unitList != null and unitList.size() > 0">
+                AND tclu.course_unit_id IS NOT NULL
+            </if>
+        </where>
+    </select>
+    <select id="queryByTeacherId" resultType="com.example.campus.pojo.Course">
+        SELECT
+            c.*
+        FROM
+            t_course c
+                INNER JOIN
+            t_course_teacher ct
+            ON
+                c.course_id = ct.course_id
+        WHERE
+            ct.teacher_id = #{teacherId}
+    </select>
+    <select id="selectByCourseId" resultType="com.example.campus.pojo.Course" resultMap="CourseResultMap">
+        select * from t_course where course_id=#{courseId};
+    </select>
+    <select id="getTeachingUnitBy" resultType="com.example.campus.pojo.TeachingUnit" resultMap="UnitResultMap">
+        select * from t_course_learn_unit where course_unit_id=#{unitId};
+    </select>
+    <select id="queryTeacheingUnitByCourseId" resultType="com.example.campus.pojo.TeachingUnit" resultMap="UnitResultMap">
+      select  * from t_course_learn_unit where course_id=#{classId}
+    </select>
+    <select id="queryCourseByStuId" resultType="com.example.campus.pojo.Course" resultMap="CourseResultMap">
+        SELECT c.course_id, c.course_name ,c.created_time,c.course_status
+        FROM t_class_student tcs
+                 JOIN t_course_class cc ON tcs.class_id = cc.class_id
+                 JOIN t_course c ON cc.course_id = c.course_id
+        WHERE tcs.student_id =#{studentId} ;
+    </select>
+
+</mapper>
